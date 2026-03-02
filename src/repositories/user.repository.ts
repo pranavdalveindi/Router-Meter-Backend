@@ -1,8 +1,8 @@
-import { AppDataSource } from '../config/database.js';
+import { dataSource } from '../config/database.js';
 import { SafeUser, User } from '../entities/user.entity.js';
 
 export class UserRepository {
-  private repo = AppDataSource.getRepository(User);
+  private repo = dataSource.getRepository(User);
 
   async findByEmail(email: string): Promise<User | null> {
     return this.repo.findOneBy({ email: email.toLowerCase().trim() });

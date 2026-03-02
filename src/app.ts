@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import authRoutes from './routes/auth.routes.js';
 import routerEventRoutes from "./routes/routerEvents.routes.js";
+import cookieParser from 'cookie-parser';
 
 const app = express();
 
@@ -14,7 +15,7 @@ app.use(cors({
     'http://localhost:5173',            // Vite default
     'http://localhost:4200',            // Angular default (optional)
     'http://127.0.0.1:5173',            // sometimes needed in dev
-    'https://router-meter.vercel.app/', // your main Vercel domain
+    'https://router-meter.vercel.app', // your main Vercel domain
     // Add preview branches if needed (wildcard is less secure but useful for testing):
     // 'https://*.vercel.app',
   ],
@@ -27,6 +28,9 @@ app.use(cors({
 
 // Parse JSON bodies
 app.use(express.json());
+
+//cookies parser
+app.use(cookieParser());
 
 // Routes
 app.use('/api/auth', authRoutes);

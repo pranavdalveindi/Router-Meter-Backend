@@ -1,5 +1,6 @@
 import { AuthService } from '../services/auth.service.js';
-import { ConflictError, UnauthorizedError } from '../utils/errors.js';
+import { ConflictError } from '../utils/errors.js';
+import { setAuthCookie } from '../utils/auth.js';
 const authService = new AuthService();
 export const register = async (req, res) => {
     try {
@@ -24,14 +25,29 @@ export const login = async (req, res) => {
         if (!email || !password) {
             return res.status(400).json({ error: "Email and password are required" });
         }
-        // Correct: one object argument
         const { user, token } = await authService.login({ email, password });
-        res.json({ user, token });
+        setAuthCookie(res, token);
+        res.json({ user });
     }
-    catch (err) {
-        if (err instanceof UnauthorizedError) {
-            return res.status(401).json({ error: err.message });
-        }
-        res.status(500).json({ error: err.message || "Internal server error" });
+    catch (error) {
+        return res.status(401).json({ error: "Invalid credentials" });
+    }
+};
+export const logoutController = async (req, res) => {
+    try {
+        // Clear JWT cookie
+        res.clearCookie("auth-session", {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "lax",
+        });
+        return res.status(200).json({
+            message: "Logged out successfully",
+        });
+    }
+    catch (error) {
+        return res.status(500).json({
+            error: "Logout failed",
+        });
     }
 };

@@ -1,19 +1,19 @@
-import { Entity, PrimaryGeneratedColumn, Column } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn } from "typeorm";
 
 @Entity({ name: "router_events" })
 export class RouterEvent {
-    @PrimaryGeneratedColumn()
-    id!: number;
+  @PrimaryGeneratedColumn()
+  id!: number;
 
-    @Column({ type: "text" })
-    device_id!: string;
+  @Column({ name: "device_id", type: "text" })
+  deviceId!: string;
 
-    @Column({ type: "bigint" })
-    timestamp!: string;  // keep as string because JS cannot store large bigint safely
+  @Column({ type: "bigint" })
+  timestamp!: string; // keep string for bigint safety
 
-    @Column({ type: "integer" })
-    type!: number;
+  @Column({ type: "integer" })
+  type!: number;
 
-    @Column("jsonb")
-    details!: any;
+  @Column({ type: "jsonb" })
+  details!: any;
 }

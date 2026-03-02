@@ -1,3 +1,4 @@
+// src/entities/user.entity.ts
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -7,30 +8,34 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-// src/entities/user.entity.ts
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn } from 'typeorm';
 import { IsEmail } from 'class-validator';
 let User = class User {
+    id;
+    email;
+    passwordHash;
+    createdAt;
 };
 __decorate([
     PrimaryGeneratedColumn(),
     __metadata("design:type", Number)
 ], User.prototype, "id", void 0);
 __decorate([
-    Column({ unique: true }),
+    Column({ type: 'varchar', unique: true }),
     IsEmail(),
     __metadata("design:type", String)
 ], User.prototype, "email", void 0);
 __decorate([
-    Column({ nullable: false }) // ← this is crucial
+    Column({ type: 'varchar', name: 'password_hash', nullable: false }) // ✅ fixed mapping
     ,
     __metadata("design:type", String)
 ], User.prototype, "passwordHash", void 0);
 __decorate([
-    CreateDateColumn(),
+    CreateDateColumn({ type: 'timestamptz', name: 'created_at' }) // ✅ consistent naming
+    ,
     __metadata("design:type", Date)
 ], User.prototype, "createdAt", void 0);
 User = __decorate([
-    Entity('users')
+    Entity('router_users') // ✅ changed
 ], User);
 export { User };

@@ -1,42 +1,34 @@
-// src/config/database.ts
-import { DataSource } from 'typeorm';
-import dotenv from 'dotenv';
-import path from 'path';
-import { fileURLToPath } from 'url';
-// Load environment variables
-dotenv.config();
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const isProd = process.env.NODE_ENV === 'production';
-export const AppDataSource = new DataSource({
-    type: 'postgres',
-    url: process.env.DATABASE_URL,
-    // VERY IMPORTANT: never use synchronize: true in production!
-    synchronize: false, // ← changed to false (use migrations instead)
-    logging: isProd ? ['error'] : true, // less noisy in production
-    // ──────────────────────────────────────────────
-    // Entities – this is the most common reason for "No metadata for \"User\" was found"
-    // ──────────────────────────────────────────────
-    entities: [
-        // Best way for both development and production after build
-        path.join(__dirname, isProd ? '../entities/**/*.js' : '../entities/**/*.ts')
-    ],
-    // ──────────────────────────────────────────────
-    // Migrations – same logic as entities
-    // ──────────────────────────────────────────────
-    migrations: [
-        path.join(__dirname, isProd ? '../migrations/**/*.js' : '../migrations/**/*.ts')
-    ],
-    // Optional: subscribers if you use them
-    subscribers: [],
-    // SSL configuration (good practice)
-    ssl: isProd ? {
-        rejectUnauthorized: false // ← common for AWS RDS / Heroku / Render
-    } : false,
-    // Recommended extra settings
-    extra: {
-        max: 20, // connection pool size
-        idleTimeoutMillis: 30000,
-        connectionTimeoutMillis: 2000,
+import "reflect-metadata";
+import { DataSource } from "typeorm";
+import { env } from "./env.js";
+import fs from "fs";
+import { getLocalDbHost, getLocalDbPort } from "./dbTunnel.js";
+import { RouterEvent } from "../entities/RouterEvent.js";
+import { User } from "../entities/user.entity.js";
+const isDev = env.nodeEnv === "development";
+const baseConfig = {
+    type: "postgres", // ✅ now correctly typed
+    username: env.db.username,
+    password: env.db.password,
+    database: env.db.database,
+    synchronize: false,
+    logging: env.nodeEnv !== "production",
+    entities: [RouterEvent, User],
+    migrations: isDev
+        ? ["src/migrations/**/*.ts"]
+        : ["dist/migrations/**/*.js"],
+    ssl: {
+        ca: fs.readFileSync("global-bundle.pem").toString(),
+        rejectUnauthorized: !isDev,
     },
+    extra: {
+        max: 20,
+        idleTimeoutMillis: 30000,
+        connectionTimeoutMillis: 30000,
+    },
+};
+export const dataSource = new DataSource({
+    ...baseConfig,
+    host: isDev ? getLocalDbHost() : env.db.host,
+    port: isDev ? getLocalDbPort() : env.db.port,
 });

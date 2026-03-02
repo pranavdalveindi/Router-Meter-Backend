@@ -1,10 +1,10 @@
 import { Router } from 'express';
-import { RDSDataSource } from '../config/rdsDataSource.js';
 import { RouterEvent } from '../entities/RouterEvent.js';
+import { dataSource } from '../config/database.js';
 const router = Router();
 router.get('/router-event', async (req, res) => {
     try {
-        const repo = RDSDataSource.getRepository(RouterEvent); // ✅ must use RDSDataSource
+        const repo = dataSource.getRepository(RouterEvent);
         const events = await repo.find({ order: { timestamp: 'DESC' } });
         res.json(events);
     }

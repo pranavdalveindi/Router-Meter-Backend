@@ -9,15 +9,20 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 import { Entity, PrimaryGeneratedColumn, Column } from "typeorm";
 let RouterEvent = class RouterEvent {
+    id;
+    deviceId;
+    timestamp; // keep string for bigint safety
+    type;
+    details;
 };
 __decorate([
     PrimaryGeneratedColumn(),
     __metadata("design:type", Number)
 ], RouterEvent.prototype, "id", void 0);
 __decorate([
-    Column({ type: "text" }),
+    Column({ name: "device_id", type: "text" }),
     __metadata("design:type", String)
-], RouterEvent.prototype, "device_id", void 0);
+], RouterEvent.prototype, "deviceId", void 0);
 __decorate([
     Column({ type: "bigint" }),
     __metadata("design:type", String)
@@ -27,7 +32,7 @@ __decorate([
     __metadata("design:type", Number)
 ], RouterEvent.prototype, "type", void 0);
 __decorate([
-    Column("jsonb"),
+    Column({ type: "jsonb" }),
     __metadata("design:type", Object)
 ], RouterEvent.prototype, "details", void 0);
 RouterEvent = __decorate([

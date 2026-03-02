@@ -1,4 +1,4 @@
-import { AppDataSource } from '../config/database.js';
+import { dataSource } from "../config/database.js";
 import { User, type SafeUser } from '../entities/user.entity.js';
 import argon2 from 'argon2';
 import jwt, { SignOptions } from 'jsonwebtoken';
@@ -12,7 +12,7 @@ if (!JWT_SECRET) {
 }
 
 export class AuthService {
-  private userRepo = AppDataSource.getRepository(User);
+  private userRepo = dataSource.getRepository(User); // ✅ use AppDataSource
 
   async register({ email, password }: { email: string; password: string }): Promise<SafeUser> {
     const existing = await this.userRepo.findOneBy({
@@ -50,7 +50,6 @@ export class AuthService {
       throw new UnauthorizedError('Invalid credentials');
     }
 
-    // Now safe because passwordHash is string (not string | undefined)
     const isValid = await argon2.verify(user.passwordHash, password);
     if (!isValid) {
       throw new UnauthorizedError('Invalid credentials');
@@ -58,7 +57,7 @@ export class AuthService {
 
     const token = jwt.sign(
       { id: user.id, email: user.email },
-      JWT_SECRET,                                     // TS infers string
+      JWT_SECRET,
       { expiresIn: process.env.JWT_EXPIRES_IN ?? '1h' } as SignOptions
     );
 

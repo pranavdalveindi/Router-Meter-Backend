@@ -22,8 +22,6 @@ jobs:
           chmod 600 ~/.ssh/bastion.pem
           chmod 600 ~/.ssh/private.pem
 
-          ssh-keyscan -H ${{ secrets.JUMP_DEV_IP }} >> ~/.ssh/known_hosts || true
-
           cat >> ~/.ssh/config << EOF
           Host bastion
             HostName ${{ secrets.JUMP_DEV_IP }}
@@ -35,24 +33,15 @@ jobs:
             User ${{ secrets.EC2_USER_DEV }}
             IdentityFile ~/.ssh/private.pem
             ProxyJump bastion
-            StrictHostKeyChecking no
-            UserKnownHostsFile /dev/null
           EOF
 
-      - name: Add known hosts
-        run: |
-          ssh-keyscan -H ${{ secrets.JUMP_DEV_IP }} >> ~/.ssh/known_hosts
       - name: Deploy to EC2
         run: |
-          ssh private << 'EOF'
-            export NVM_DIR="$HOME/.nvm"
-            source $NVM_DIR/nvm.sh
-
+          ssh -o StrictHostKeyChecking=no private << 'EOF'
             cd /var/www/Router-Meter-backend
-
             git fetch --all
             git reset --hard origin/main
-
             npm install
+            npm run build
             pm2 restart all
           EOF
