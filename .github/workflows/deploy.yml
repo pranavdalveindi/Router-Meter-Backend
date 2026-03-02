@@ -9,17 +9,23 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # Step 1: Checkout your repo
       - name: Checkout Code
         uses: actions/checkout@v3
 
+      # Step 2: Setup SSH keys and config
       - name: Setup SSH
         run: |
           mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+
+          # Save private keys
           echo "${{ secrets.JUMP_DEV_KEY }}" > ~/.ssh/bastion.pem
           echo "${{ secrets.EC2_DEV_KEY }}" > ~/.ssh/private.pem
           chmod 600 ~/.ssh/bastion.pem
           chmod 600 ~/.ssh/private.pem
 
+          # Create SSH config with ProxyJump
           cat >> ~/.ssh/config << EOF
           Host bastion
             HostName ${{ secrets.JUMP_DEV_IP }}
@@ -33,11 +39,13 @@ jobs:
             ProxyJump bastion
           EOF
 
+      # Step 3: Add servers to known_hosts (ignore errors)
       - name: Add hosts to known_hosts
         run: |
-          ssh-keyscan -H ${{ secrets.JUMP_DEV_IP }} >> ~/.ssh/known_hosts
-          ssh-keyscan -H ${{ secrets.EC2_DEV_PRIVATE_IP }} >> ~/.ssh/known_hosts
+          ssh-keyscan -H ${{ secrets.JUMP_DEV_IP }} >> ~/.ssh/known_hosts 2>/dev/null || true
+          ssh-keyscan -H ${{ secrets.EC2_DEV_PRIVATE_IP }} >> ~/.ssh/known_hosts 2>/dev/null || true
 
+      # Step 4: Deploy commands via SSH
       - name: Deploy to EC2
         run: |
           ssh -o StrictHostKeyChecking=no private "
