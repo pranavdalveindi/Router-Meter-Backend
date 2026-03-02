@@ -2,30 +2,29 @@ name: Deploy Backend
 
 on:
   push:
-    branches: [main]
+    branches: [main]   # Trigger only on pushes to main branch
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-      # Step 1: Checkout your repo
+      # 1️⃣ Checkout code from GitHub
       - name: Checkout Code
         uses: actions/checkout@v3
 
-      # Step 2: Setup SSH keys and config
+      # 2️⃣ Setup SSH
       - name: Setup SSH
         run: |
           mkdir -p ~/.ssh
-          chmod 700 ~/.ssh
 
-          # Save private keys
+          # Create PEM files from secrets
           echo "${{ secrets.JUMP_DEV_KEY }}" > ~/.ssh/bastion.pem
           echo "${{ secrets.EC2_DEV_KEY }}" > ~/.ssh/private.pem
           chmod 600 ~/.ssh/bastion.pem
           chmod 600 ~/.ssh/private.pem
 
-          # Create SSH config with ProxyJump
+          # Setup SSH config
           cat >> ~/.ssh/config << EOF
           Host bastion
             HostName ${{ secrets.JUMP_DEV_IP }}
@@ -37,22 +36,30 @@ jobs:
             User ${{ secrets.EC2_USER_DEV }}
             IdentityFile ~/.ssh/private.pem
             ProxyJump bastion
+            StrictHostKeyChecking no
           EOF
 
-      # Step 3: Add servers to known_hosts (ignore errors)
-      - name: Add hosts to known_hosts
-        run: |
-          ssh-keyscan -H ${{ secrets.JUMP_DEV_IP }} >> ~/.ssh/known_hosts 2>/dev/null || true
-          ssh-keyscan -H ${{ secrets.EC2_DEV_PRIVATE_IP }} >> ~/.ssh/known_hosts 2>/dev/null || true
+          # Add bastion host to known_hosts to avoid first-time prompts
+          ssh-keyscan -H ${{ secrets.JUMP_DEV_IP }} >> ~/.ssh/known_hosts || true
 
-      # Step 4: Deploy commands via SSH
+      # 3️⃣ Deploy code on private EC2
       - name: Deploy to EC2
         run: |
-          ssh -o StrictHostKeyChecking=no private "
-            cd /var/www/Router-Meter-backend &&
-            git fetch --all &&
-            git reset --hard origin/main &&
-            npm install &&
-            npm run build &&
+          ssh private << 'EOF'
+            # Load Node/NVM environment
+            export NVM_DIR="$HOME/.nvm"
+            source $NVM_DIR/nvm.sh
+
+            # Navigate to project folder
+            cd /var/www/Router-Meter-backend
+
+            # Pull latest code from main branch
+            git fetch --all
+            git reset --hard origin/main
+
+            # Install dependencies
+            npm install
+
+            # Restart PM2 processes
             pm2 restart all
-          "
+          EOF
