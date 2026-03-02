@@ -11,4 +11,4 @@ dist/
 
 # TypeORM migrations (optional: ignore only compiled JS if using TS)
 src/migrations/**/*.ts   # ignore TS migration source files if you want
-dist/migrations/**/*.js  # ignore compiled migration JS files
+dist/migrations/**/*.js  # ignore compiled migration JS files``
