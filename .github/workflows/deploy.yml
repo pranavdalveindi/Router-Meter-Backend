@@ -60,6 +60,9 @@ jobs:
             # Install dependencies
             npm install
 
+            # Build the project
+            npm run build
+
             # Restart PM2 processes
             pm2 restart all
           EOF
