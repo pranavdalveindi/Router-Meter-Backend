@@ -1,24 +1,19 @@
 import "reflect-metadata";
 import { DataSource, DataSourceOptions } from "typeorm";
 import { env } from "./env.js";
+import fs from "fs";
 import { getLocalDbHost, getLocalDbPort } from "./dbTunnel.js";
 import { RouterEvent } from "../entities/RouterEvent.js";
 import { User } from "../entities/user.entity.js";
 
+
 const isDev = env.nodeEnv === "development";
 
-// Production SSL config: verify server certificate
-const sslConfig = isDev
-  ? false // dev: no SSL verification
-  : { rejectUnauthorized: true }; // prod: verify server cert
-
 const baseConfig: DataSourceOptions = {
-  type: "postgres",
+  type: "postgres", // ✅ now correctly typed
   username: env.db.username,
   password: env.db.password,
   database: env.db.database,
-  host: isDev ? getLocalDbHost() : env.db.host,
-  port: isDev ? getLocalDbPort() : env.db.port,
   synchronize: false,
   logging: env.nodeEnv !== "production",
 
@@ -28,7 +23,10 @@ const baseConfig: DataSourceOptions = {
     ? ["src/migrations/**/*.ts"]
     : ["dist/migrations/**/*.js"],
 
-  ssl: sslConfig,
+  ssl: {
+    ca: fs.readFileSync("global-bundle.pem").toString(),
+    rejectUnauthorized: !isDev,
+  },
 
   extra: {
     max: 20,
@@ -37,4 +35,8 @@ const baseConfig: DataSourceOptions = {
   },
 };
 
-export const dataSource = new DataSource(baseConfig);
+export const dataSource = new DataSource({
+  ...baseConfig,
+  host: isDev ? getLocalDbHost() : env.db.host,
+  port: isDev ? getLocalDbPort() : env.db.port,
+});
