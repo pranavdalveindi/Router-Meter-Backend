@@ -1,0 +1,46 @@
+name: Deploy Backend
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+
+          echo "${{ secrets.JUMP_DEV_KEY }}" > ~/.ssh/bastion.pem
+          echo "${{ secrets.EC2_DEV_KEY }}" > ~/.ssh/private.pem
+
+          chmod 600 ~/.ssh/bastion.pem
+          chmod 600 ~/.ssh/private.pem
+
+          cat >> ~/.ssh/config << EOF
+          Host bastion
+            HostName ${{ secrets.JUMP_DEV_IP }}
+            User ${{ secrets.EC2_USER_DEV }}
+            IdentityFile ~/.ssh/bastion.pem
+
+          Host private
+            HostName ${{ secrets.EC2_DEV_PRIVATE_IP }}
+            User ${{ secrets.EC2_USER_DEV }}
+            IdentityFile ~/.ssh/private.pem
+            ProxyJump bastion
+          EOF
+
+      - name: Deploy to EC2
+        run: |
+          ssh -o StrictHostKeyChecking=no private << 'EOF'
+            cd /var/www/Router-Meter-backend
+            git fetch --all
+            git reset --hard origin/main
+            npm install
+            pm2 restart all
+          EOF
