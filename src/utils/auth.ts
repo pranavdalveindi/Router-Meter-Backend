@@ -23,7 +23,7 @@ export function generateToken(userId: number): string {
 export function setAuthCookie(res: Response, token: string): void {
   res.cookie("auth-session", token, {
     httpOnly: true,
-    secure: true,
+    secure: process.env.NODE_ENV === "production",
     sameSite: "none",
   });
 }
