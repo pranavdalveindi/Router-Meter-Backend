@@ -23,8 +23,8 @@ export function generateToken(userId: number): string {
 export function setAuthCookie(res: Response, token: string): void {
   res.cookie("auth-session", token, {
     httpOnly: true,
-    secure: true,                        // MUST be true (Vercel & EC2 use HTTPS)
-    sameSite: 'none',                    // MUST for cross-domain in 3rd-party context
-    path: '/',                           // usually good
+    secure: true,
+    domain: ".indirex.io",
+    sameSite: "none",
   });
 }
