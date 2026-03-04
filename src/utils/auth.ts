@@ -24,6 +24,6 @@ export function setAuthCookie(res: Response, token: string): void {
   res.cookie("auth-session", token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
-    sameSite: "none",
+    sameSite: "lax",
   });
 }
