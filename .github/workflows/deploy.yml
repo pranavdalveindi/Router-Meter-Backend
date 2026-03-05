@@ -51,7 +51,7 @@ jobs:
             source $NVM_DIR/nvm.sh
 
             # Navigate to project folder
-            cd /var/www/Router-Meter-backend
+            cd /var/www/Router-Meter-Backend
 
             # Pull latest code from main branch
             git fetch --all
