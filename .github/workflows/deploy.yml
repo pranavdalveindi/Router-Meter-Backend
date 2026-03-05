@@ -1,0 +1,68 @@
+name: Deploy Backend
+
+on:
+  push:
+    branches: [main]   # Trigger only on pushes to main branch
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1️⃣ Checkout code from GitHub
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      # 2️⃣ Setup SSH
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+
+          # Create PEM files from secrets
+          echo "${{ secrets.JUMP_DEV_KEY }}" > ~/.ssh/bastion.pem
+          echo "${{ secrets.EC2_DEV_KEY }}" > ~/.ssh/private.pem
+          chmod 600 ~/.ssh/bastion.pem
+          chmod 600 ~/.ssh/private.pem
+
+          # Setup SSH config
+          cat >> ~/.ssh/config << EOF
+          Host bastion
+            HostName ${{ secrets.JUMP_DEV_IP }}
+            User ${{ secrets.EC2_USER_DEV }}
+            IdentityFile ~/.ssh/bastion.pem
+
+          Host private
+            HostName ${{ secrets.EC2_DEV_PRIVATE_IP }}
+            User ${{ secrets.EC2_USER_DEV }}
+            IdentityFile ~/.ssh/private.pem
+            ProxyJump bastion
+            StrictHostKeyChecking no
+          EOF
+
+          # Add bastion host to known_hosts to avoid first-time prompts
+          ssh-keyscan -H ${{ secrets.JUMP_DEV_IP }} >> ~/.ssh/known_hosts || true
+
+      # 3️⃣ Deploy code on private EC2
+      - name: Deploy to EC2
+        run: |
+          ssh private << 'EOF'
+            # Load Node/NVM environment
+            export NVM_DIR="$HOME/.nvm"
+            source $NVM_DIR/nvm.sh
+
+            # Navigate to project folder
+            cd /var/www/Router-Meter-backend
+
+            # Pull latest code from main branch
+            git fetch --all
+            git reset --hard origin/main
+
+            # Install dependencies
+            npm install
+
+            # Build the project
+            npm run build
+
+            # Restart PM2 processes
+            pm2 restart all
+          EOF
