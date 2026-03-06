@@ -12,7 +12,7 @@ const app = express();
 app.use(cors({
   origin: [
     'https://router-meter.vercel.app',
-    'https://router-meter-frontend.vercel.app/', //Indi link for vercel
+    'https://router-meter-frontend.vercel.app', //Indi link for vercel
     'http://localhost:3000',            // React default
     'http://localhost:5173',            // Vite default
     'http://localhost:4200',            // Angular default (optional)
