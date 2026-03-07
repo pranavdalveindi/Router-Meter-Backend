@@ -12,7 +12,7 @@ export function generateToken(userId) {
 export function setAuthCookie(res, token) {
     res.cookie("auth-session", token, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "lax",
+        secure: true,
+        sameSite: "none",
     });
 }
