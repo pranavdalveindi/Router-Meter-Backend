@@ -19,5 +19,7 @@ export const getRouterEvents = async () => {
     ORDER BY e."timestamp" DESC
     `);
 
+    console.log("ROUTER EVENT SERVICE LOADED");
+
   return events;
 };
