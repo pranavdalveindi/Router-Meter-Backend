@@ -9,11 +9,13 @@ const app = express();
 // ──────────────────────────────────────────────
 app.use(cors({
     origin: [
+        'https://router-meter.vercel.app',
+        'https://router-meter-frontend.vercel.app', //Indi link for vercel
         'http://localhost:3000', // React default
         'http://localhost:5173', // Vite default
         'http://localhost:4200', // Angular default (optional)
         'http://127.0.0.1:5173', // sometimes needed in dev
-        'https://router-meter.vercel.app', // your main Vercel domain
+        // your main Vercel domain
         // Add preview branches if needed (wildcard is less secure but useful for testing):
         // 'https://*.vercel.app',
     ],
