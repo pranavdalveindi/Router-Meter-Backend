@@ -9,9 +9,10 @@ export const getRouterEvents = async () => {
     e.type,
     e.details,
     m.member_code,
-    m.hhid,
-    m.device_type
+    m.device_type,
+    COALESCE(m.hhid, rhm.hhid) AS hhid
     FROM router_events e
+                                
     LEFT JOIN member_events m
     ON (
         e.device_id = m.device_id
@@ -21,6 +22,10 @@ export const getRouterEvents = async () => {
         OR (e.details->'domain_activity'->>'source_ip') = m.ip
     )
     )
+
+    LEFT JOIN router_household_map rhm
+    ON e.device_id = rhm.device_id
+
     ORDER BY e."timestamp" DESC;
     `);
 
