@@ -11,6 +11,7 @@ const app = express();
 // ──────────────────────────────────────────────
 app.use(cors({
   origin: [
+    'https://router-mexico.indirex.io',
     'https://router-dev.indirex.io',
     'https://router-meter.vercel.app',
     'https://router-meter-frontend.vercel.app', //Indi link for vercel
